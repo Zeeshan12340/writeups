@@ -35,6 +35,14 @@ Transfering an amount of 1 to another user we created(`test1@revworks.thm:passwo
 
 ##### Exploitation
 
+Dev Note: There is an unintended bug in the application where if you transfer a negative value to another user, the server ends up adding to your amount because of the following code:
+```ruby
+current_user.money -= amount.to_i
+current_user.save
+```
+this does not check if the amount is negative and a negative amount results in current_user's money to be incremented. This bug is easily fixed by simply taking the absolute value of the amount or adding a check at the start of the code so that value is not negative as I have done here [revworks](https://github.com/Zeeshan12340/revworks). This bug was informed to me by @auk0x01 on discord.
+
+Below is the "intended" method for exploiting this webapp:
 This setup allows us to perform a web race condiiton such that `test` makes a large number of asynchronous requests transfering to `test1` and the other user does the same. The end result that the server can not keep track of the transfers and transfers more amount to one or both users. This can be scripted in python3 using a module such as `grequests` but it is simpler and easier to do it using an already built fuzzing tool such as `ffuf`.
 
 In one terminal, run the fuzzer with the cookie of `test` and with post data `test1@revworks.thm`.
